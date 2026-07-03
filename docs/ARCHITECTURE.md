@@ -95,7 +95,7 @@ specific to one industry. Current tools: `check_business_state(tenant_id, item)`
 returns the current value and last-confirmed timestamp for any business-state item,
 whether that's a stock count, a service availability flag, or a rate —
 `get_business_policy(tenant_id, topic)`, and `log_correction(tenant_id, draft,
-correction)`.
+`correction)`.
 
 ### 2.5 Memory store
 ApsaraDB for PostgreSQL, with two layers:
@@ -160,7 +160,7 @@ key, indexed and enforced at the query layer (see Section 6).
 - `customers` — end customers per tenant, keyed by channel identifier
 - `conversations` / `messages` — full inquiry history, tagged auto-resolved or escalated
 - `business_state_items` — any fact about the business that can go stale: a name
-  (e.g., "50kg maize bags," "new client intake"), a current value (quantity, boolean
+  (e.g., "50kg maize bags," "new client intake," "mobile app development package"), a current value (quantity, boolean
   availability, price, or short status text), last-confirmed timestamp and source.
   One general shape covers stock, capacity, availability, and pricing across
   industries — see PRD FR-5b.

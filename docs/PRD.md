@@ -141,7 +141,7 @@ Built on Qwen Cloud (reasoning/generation) and deployed on Alibaba Cloud
   owners who prefer it, but this is optional, not required.
 
 ### 5.5 Customer Inquiry Handling
-- FR-10: The system ingests inquiries from WhatsApp and Email (Instagram/Facebook as a
+- FR-10: The system ingests inquiries from WhatsApp and Email (Instagram/Email as a
   stretch channel), normalizing each into a common internal message format.
 - FR-11: For each inquiry, the agent retrieves relevant tenant context: business
   profile/policies, current business-state data relevant to the inquiry, and the
