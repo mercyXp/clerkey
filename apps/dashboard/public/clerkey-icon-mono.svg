@@ -1,0 +1,6 @@
+<svg width="128" height="110" viewBox="0 20 128 90" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Clerkey icon, monochrome</title>
+<path d="M42 82 L34 98 L58 82 Z" fill="currentColor"/>
+<path d="M30 50 a16 16 0 0 1 16 -16 h36 a16 16 0 0 1 16 16 v16 a16 16 0 0 1 -16 16 h-36 a16 16 0 0 1 -16 -16 Z" fill="none" stroke="currentColor" stroke-width="7"/>
+<path d="M48 58 L60 70 L82 44" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
