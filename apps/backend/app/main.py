@@ -13,8 +13,12 @@ from app.config import JWT_SECRET, JWT_ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 from app.database import get_db, engine, Base
 
 # Create tables in development if they don't exist yet (Alembic will also be set up)
-# In production, Alembic handles migrations.
-Base.metadata.create_all(bind=engine)
+# In production, Alembic handles migrations. We handle database offline gracefully on boot.
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception as e:
+    import sys
+    print(f"Warning: Could not connect to database on startup. Starting app anyway. Error: {e}", file=sys.stderr)
 
 app = FastAPI(
     title="Clerkey API",
@@ -31,17 +35,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Password hashing configuration
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+import bcrypt
+
+# Password hashing configuration using standard bcrypt library directly (avoiding deprecated/broken passlib on Python 3.12)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/token")
 
 
 # Helper Functions
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    # Encodes password and hashes it
+    pwd_bytes = password.encode('utf-8')
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(pwd_bytes, salt).decode('utf-8')
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    # Verifies plain password against hashed password
+    pwd_bytes = plain_password.encode('utf-8')
+    hashed_bytes = hashed_password.encode('utf-8')
+    return bcrypt.checkpw(pwd_bytes, hashed_bytes)
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
@@ -122,6 +133,9 @@ def signup(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(user)
     except Exception as e:
+        import traceback
+        import sys
+        traceback.print_exc()
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -266,7 +280,7 @@ def update_business_state_item(
     if item_update.current_value is not None:
         item.current_value = item_update.current_value
     
-    item.confirmation_source = item_update.confirmation_source
+    item.confirmed_by = item_update.confirmed_by
     item.last_confirmed_at = datetime.utcnow()
     item.updated_at = datetime.utcnow()
     

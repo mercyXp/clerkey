@@ -32,7 +32,7 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id", on_delete="CASCADE"), nullable=False, index=True)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     first_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
@@ -49,7 +49,7 @@ class Customer(Base):
     __tablename__ = "customers"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id", on_delete="CASCADE"), nullable=False, index=True)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
     name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     phone_number: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
@@ -70,8 +70,8 @@ class Conversation(Base):
     __tablename__ = "conversations"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id", on_delete="CASCADE"), nullable=False, index=True)
-    customer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("customers.id", on_delete="CASCADE"), nullable=False, index=True)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
+    customer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("customers.id", ondelete="CASCADE"), nullable=False, index=True)
     channel: Mapped[str] = mapped_column(String(50), nullable=False)  # 'whatsapp', 'email', 'instagram'
     status: Mapped[str] = mapped_column(String(50), default="active", nullable=False)  # 'active', 'escalated', 'resolved'
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
@@ -87,8 +87,8 @@ class Message(Base):
     __tablename__ = "messages"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id", on_delete="CASCADE"), nullable=False, index=True)
-    conversation_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("conversations.id", on_delete="CASCADE"), nullable=False, index=True)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
+    conversation_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False, index=True)
     direction: Mapped[str] = mapped_column(String(20), nullable=False)  # 'inbound', 'outbound'
     sender_type: Mapped[str] = mapped_column(String(50), nullable=False)  # 'customer', 'ai_agent', 'human_owner'
     message_text: Mapped[str] = mapped_column(Text, nullable=False)
@@ -106,13 +106,13 @@ class BusinessStateItem(Base):
     __tablename__ = "business_state_items"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id", on_delete="CASCADE"), nullable=False, index=True)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)  # e.g. '50kg maize bags'
-    category: Mapped[str] = mapped_column(String(100), nullable=False)  # 'stock', 'availability', 'pricing', 'capacity'
-    current_value: Mapped[str] = mapped_column(String(255), nullable=False)  # string representation
+    item_type: Mapped[str] = mapped_column(String(100), nullable=False)  # 'stock', 'availability', 'rate', 'custom'
+    current_value: Mapped[str] = mapped_column(Text, nullable=False)  # stored as JSON or text representation
     data_type: Mapped[str] = mapped_column(String(50), default="string", nullable=False)  # 'integer', 'boolean', 'decimal', 'string'
     last_confirmed_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
-    confirmation_source: Mapped[str] = mapped_column(String(100), nullable=False)  # 'onboarding', 'dashboard_edit', 'whatsapp_checkin'
+    confirmed_by: Mapped[str] = mapped_column(String(100), nullable=False)  # 'onboarding', 'dashboard_edit', 'whatsapp_checkin'
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
@@ -128,7 +128,7 @@ class Correction(Base):
     __tablename__ = "corrections"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id", on_delete="CASCADE"), nullable=False, index=True)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
     inbound_query: Mapped[str] = mapped_column(Text, nullable=False)
     ai_draft: Mapped[str] = mapped_column(Text, nullable=False)
     human_correction: Mapped[str] = mapped_column(Text, nullable=False)
@@ -143,7 +143,7 @@ class ChannelConnection(Base):
     __tablename__ = "channel_connections"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id", on_delete="CASCADE"), nullable=False, index=True)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True)
     channel_type: Mapped[str] = mapped_column(String(50), nullable=False)  # 'whatsapp', 'email', 'instagram'
     status: Mapped[str] = mapped_column(String(50), default="disconnected", nullable=False)
     credentials: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)  # encrypted using AES-256-GCM

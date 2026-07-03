@@ -91,17 +91,17 @@ class CustomerResponse(CustomerBase):
 # Business State Item Schemas
 class BusinessStateItemBase(BaseModel):
     name: str = Field(..., max_length=255)
-    category: str = Field(..., max_length=100)  # 'stock', 'availability', 'pricing', 'capacity'
-    current_value: str = Field(..., max_length=255)
+    item_type: str = Field(..., max_length=100)  # 'stock', 'availability', 'rate', 'custom'
+    current_value: str = Field(...)
     data_type: str = "string"  # 'integer', 'boolean', 'decimal', 'string'
-    confirmation_source: str = "onboarding"
+    confirmed_by: str = "onboarding"
 
 class BusinessStateItemCreate(BusinessStateItemBase):
     pass
 
 class BusinessStateItemUpdate(BaseModel):
     current_value: Optional[str] = None
-    confirmation_source: Optional[str] = "dashboard_edit"
+    confirmed_by: Optional[str] = "dashboard_edit"
 
 class BusinessStateItemResponse(BusinessStateItemBase):
     id: uuid.UUID

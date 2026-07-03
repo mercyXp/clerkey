@@ -123,11 +123,11 @@ This table uses a single generalized format to handle multiple industry domains.
 | `id` | UUID | PRIMARY KEY, DEFAULT gen_random_uuid() | Unique identifier |
 | `tenant_id` | UUID | REFERENCES tenants(id) ON DELETE CASCADE, NOT NULL | Tenant scoping |
 | `name` | VARCHAR(255) | NOT NULL | Fact name (e.g., '50kg maize bags', 'new client intake', 'hourly rate') |
-| `category` | VARCHAR(100) | NOT NULL | Category classification ('stock', 'availability', 'pricing', 'capacity') |
-| `current_value` | VARCHAR(255) | NOT NULL | String representation of current state ('12', 'true', '$150/hr', 'no') |
+| `item_type` | VARCHAR(100) | NOT NULL | Category classification ('stock', 'availability', 'rate', 'custom') |
+| `current_value` | TEXT | NOT NULL | Stored representation of current state (as raw text or JSON string to support quantity, boolean, or price/text values without needing separate columns per type) |
 | `data_type` | VARCHAR(50) | NOT NULL DEFAULT 'string' | Schema hinting for representation ('integer', 'boolean', 'decimal', 'string') |
 | `last_confirmed_at`| TIMESTAMP | NOT NULL, DEFAULT NOW() | Timestamp of last manual reconfirmation |
-| `confirmation_source`| VARCHAR(100) | NOT NULL | 'onboarding', 'dashboard_edit', 'whatsapp_checkin' |
+| `confirmed_by` | VARCHAR(100) | NOT NULL | 'onboarding', 'dashboard_edit', 'whatsapp_checkin' |
 | `created_at` | TIMESTAMP | NOT NULL, DEFAULT NOW() | Row creation timestamp |
 | `updated_at` | TIMESTAMP | NOT NULL, DEFAULT NOW() | Row update timestamp |
 
@@ -156,7 +156,7 @@ Credentials and status for connected messaging networks.
 |---|---|---|---|
 | `id` | UUID | PRIMARY KEY, DEFAULT gen_random_uuid() | Unique identifier |
 | `tenant_id` | UUID | REFERENCES tenants(id) ON DELETE CASCADE, NOT NULL | Tenant scoping |
-| `channel_type` | VARCHAR(50) | NOT NULL | 'whatsapp', 'email', 'instagram' |
+| `channel_type` | VARCHAR(50) | NOT NULL | 'whatsapp', 'email', 'instagram' , 'Facebook'|
 | `status` | VARCHAR(50) | NOT NULL DEFAULT 'disconnected'| Connection status ('connected', 'disconnected', 'error') |
 | `credentials` | BYTEA | NOT NULL | Encrypted tokens or API keys (using AES-256-GCM) |
 | `config` | JSONB | DEFAULT '{}'::jsonb | Settings (e.g. phone number ID, email server port) |
