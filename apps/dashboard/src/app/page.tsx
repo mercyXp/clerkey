@@ -103,6 +103,12 @@ export default function Dashboard() {
         const userData = await res.json();
         setUser(userData);
         
+        // Check if onboarding completed, if not redirect to onboarding
+        if (userData.onboarding_completed === false) {
+          window.location.href = "/onboarding";
+          return;
+        }
+        
         // Auto-match seeded workspace layout with active user's tenant ID
         const matchedIdx = seededTenants.findIndex(t => t.id === userData.tenant_id);
         if (matchedIdx !== -1) {

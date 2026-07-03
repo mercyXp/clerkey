@@ -223,3 +223,58 @@ def test_business_state_validation_and_bulk_import(client):
     assert len(get_post_fail.json()) == 3  # Still just the 3 original items
 
 
+def test_tenant_onboarding_and_channel_connections(client):
+    # 1. Signup new tenant/user
+    signup = client.post("/api/auth/signup", json={
+        "email": "onboard@partner.com",
+        "password": "password123",
+        "first_name": "Onboarding",
+        "last_name": "User",
+        "tenant_name": "Onboard Company",
+        "industry": "Software/dev agencies"
+    })
+    assert signup.status_code == 201
+    signup_data = signup.json()
+    token = signup_data["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Get profile and verify onboarding_completed is initially false
+    me_res = client.get("/api/auth/me", headers=headers)
+    assert me_res.status_code == 200
+    assert me_res.json()["onboarding_completed"] is False
+
+    # 3. Create a placeholder channel connection
+    conn_payload = {
+        "channel_type": "whatsapp",
+        "credentials_raw": "EAA_test_token_123",
+        "status": "connected",
+        "config": {"onboarding_placeholder": True}
+    }
+    conn_res = client.post("/api/channel-connections", json=conn_payload, headers=headers)
+    assert conn_res.status_code == 201
+    conn_data = conn_res.json()
+    assert conn_data["channel_type"] == "whatsapp"
+    assert conn_data["status"] == "connected"
+
+    # 4. List channel connections and verify it is returned
+    conns_res = client.get("/api/channel-connections", headers=headers)
+    assert conns_res.status_code == 200
+    assert len(conns_res.json()) == 1
+    assert conns_res.json()[0]["channel_type"] == "whatsapp"
+
+    # 5. Mark onboarding as completed
+    patch_profile_res = client.patch(
+        "/api/tenant/profile",
+        json={"onboarding_completed": True},
+        headers=headers
+    )
+    assert patch_profile_res.status_code == 200
+    assert patch_profile_res.json()["onboarding_completed"] is True
+
+    # 6. Verify me endpoint now returns onboarding_completed as True
+    me_res_after = client.get("/api/auth/me", headers=headers)
+    assert me_res_after.status_code == 200
+    assert me_res_after.json()["onboarding_completed"] is True
+
+
+

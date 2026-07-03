@@ -15,22 +15,33 @@ class BaseRepository(Generic[ModelType]):
 
     def get(self, db: Session, tenant_id: uuid.UUID, id: uuid.UUID) -> Optional[ModelType]:
         """Retrieve a single record by ID, scoped strictly to the tenant."""
-        return db.query(self.model).filter(
-            self.model.tenant_id == tenant_id,
-            self.model.id == id
-        ).first()
+        if hasattr(self.model, "tenant_id"):
+            return db.query(self.model).filter(
+                self.model.tenant_id == tenant_id,
+                self.model.id == id
+            ).first()
+        else:
+            return db.query(self.model).filter(
+                self.model.id == id
+            ).first()
 
     def list(self, db: Session, tenant_id: uuid.UUID, skip: int = 0, limit: int = 100) -> List[ModelType]:
         """List records scoped strictly to the tenant."""
-        return db.query(self.model).filter(
-            self.model.tenant_id == tenant_id
-        ).offset(skip).limit(limit).all()
+        if hasattr(self.model, "tenant_id"):
+            return db.query(self.model).filter(
+                self.model.tenant_id == tenant_id
+            ).offset(skip).limit(limit).all()
+        else:
+            return db.query(self.model).filter(
+                self.model.id == tenant_id
+            ).offset(skip).limit(limit).all()
 
     def create(self, db: Session, tenant_id: uuid.UUID, obj_in: Any) -> ModelType:
         """Create a new record, automatically injecting and enforcing the tenant_id."""
         obj_data = obj_in if isinstance(obj_in, dict) else obj_in.dict()
-        # Enforce tenant_id injection
-        obj_data["tenant_id"] = tenant_id
+        # Enforce tenant_id injection if model has it
+        if hasattr(self.model, "tenant_id"):
+            obj_data["tenant_id"] = tenant_id
         db_obj = self.model(**obj_data)
         db.add(db_obj)
         db.commit()

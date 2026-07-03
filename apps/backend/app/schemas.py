@@ -10,6 +10,7 @@ class TenantBase(BaseModel):
     description: Optional[str] = None
     tone_preferences: dict = Field(default_factory=dict)
     general_policies: Optional[str] = None
+    onboarding_completed: bool = False
 
 class TenantCreate(TenantBase):
     pass
@@ -20,6 +21,7 @@ class TenantUpdate(BaseModel):
     description: Optional[str] = None
     tone_preferences: Optional[dict] = None
     general_policies: Optional[str] = None
+    onboarding_completed: Optional[bool] = None
 
 class TenantResponse(TenantBase):
     id: uuid.UUID
@@ -51,6 +53,7 @@ class UserResponse(UserBase):
     tenant_id: uuid.UUID
     tenant_name: Optional[str] = None  # To fetch actual workspace details on load
     industry: Optional[str] = None     # To capture actual tenant metadata on load
+    onboarding_completed: Optional[bool] = None
     created_at: datetime
     updated_at: datetime
 
@@ -206,3 +209,24 @@ class ConversationResponse(ConversationBase):
 
     class Config:
         from_attributes = True
+
+
+# Channel Connection Schemas
+class ChannelConnectionBase(BaseModel):
+    channel_type: str = Field(..., max_length=50) # 'whatsapp', 'email', 'instagram'
+    status: str = "connected"
+
+class ChannelConnectionCreate(ChannelConnectionBase):
+    credentials_raw: str = Field(...)
+    config: dict = Field(default_factory=dict)
+
+class ChannelConnectionResponse(ChannelConnectionBase):
+    id: uuid.UUID
+    tenant_id: uuid.UUID
+    config: dict
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+

@@ -60,6 +60,23 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     hashed_bytes = hashed_password.encode('utf-8')
     return bcrypt.checkpw(pwd_bytes, hashed_bytes)
 
+import base64
+import hashlib
+from cryptography.fernet import Fernet
+
+def get_crypto_cipher() -> Fernet:
+    key_bytes = hashlib.sha256(JWT_SECRET.encode()).digest()
+    fernet_key = base64.urlsafe_b64encode(key_bytes)
+    return Fernet(fernet_key)
+
+def encrypt_credentials(plain_text: str) -> bytes:
+    cipher = get_crypto_cipher()
+    return cipher.encrypt(plain_text.encode())
+
+def decrypt_credentials(encrypted_bytes: bytes) -> str:
+    cipher = get_crypto_cipher()
+    return cipher.decrypt(encrypted_bytes).decode()
+
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
     if expires_delta:
@@ -318,6 +335,7 @@ def get_me(current_user: schemas.TokenData = Depends(get_current_tenant), db: Se
     if tenant:
         response_data.tenant_name = tenant.name
         response_data.industry = tenant.industry
+        response_data.onboarding_completed = tenant.onboarding_completed
     return response_data
 
 
@@ -561,3 +579,53 @@ def update_tenant_profile(
     db.commit()
     db.refresh(tenant)
     return tenant
+
+
+# Channel Connections Router (Strictly Scoped by tenant_id)
+
+@app.get("/api/channel-connections", response_model=List[schemas.ChannelConnectionResponse])
+def list_channel_connections(
+    current_user: schemas.TokenData = Depends(get_current_tenant),
+    db: Session = Depends(get_db)
+):
+    """Retrieve all channel connections for the authenticated tenant."""
+    return channel_connection_repo.list(db, current_user.tenant_id)
+
+
+@app.post("/api/channel-connections", response_model=schemas.ChannelConnectionResponse, status_code=status.HTTP_201_CREATED)
+def create_channel_connection(
+    conn_in: schemas.ChannelConnectionCreate,
+    current_user: schemas.TokenData = Depends(get_current_tenant),
+    db: Session = Depends(get_db)
+):
+    """Create or update a channel connection placeholder for the authenticated tenant."""
+    # Check if a connection with this channel_type already exists
+    existing_conn = db.query(models.ChannelConnection).filter(
+        models.ChannelConnection.tenant_id == current_user.tenant_id,
+        models.ChannelConnection.channel_type == conn_in.channel_type
+    ).first()
+
+    encrypted_creds = encrypt_credentials(conn_in.credentials_raw)
+
+    if existing_conn:
+        existing_conn.credentials = encrypted_creds
+        existing_conn.status = conn_in.status
+        existing_conn.config = conn_in.config
+        existing_conn.updated_at = datetime.utcnow()
+        db.commit()
+        db.refresh(existing_conn)
+        return existing_conn
+    else:
+        # Create new
+        db_obj = models.ChannelConnection(
+            tenant_id=current_user.tenant_id,
+            channel_type=conn_in.channel_type,
+            status=conn_in.status,
+            credentials=encrypted_creds,
+            config=conn_in.config
+        )
+        db.add(db_obj)
+        db.commit()
+        db.refresh(db_obj)
+        return db_obj
+

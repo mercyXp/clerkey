@@ -16,6 +16,7 @@ class Tenant(Base):
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     tone_preferences: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
     general_policies: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    onboarding_completed: Mapped[bool] = mapped_column(default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
